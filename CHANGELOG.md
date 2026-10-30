@@ -1,7 +1,9 @@
 # Changelog
 
-## Unreleased
+## US-102 dashboard capstone
 
-- Add a Python CLI that validates OpenAPI 3.0.x/3.1.x specifications and generates `docs/api.md`.
-- Add a GitHub Actions pull request check for unit tests, dependency auditing, and documentation drift.
-- Add a sample OpenAPI contract, generated reference, and Copilot workspace customizations.
+- Replace the OpenAPI documentation generator with the Caseflow test management dashboard.
+- Add Java 17 HTTP server and simulated asynchronous test runner.
+- Add browser UI for case management, search/filter, run status, and execution reports.
+- Store case and report data in local storage and use a demo-only login gate.
+- Add Maven tests, GitHub Actions CI, and Copilot workflow helpers.

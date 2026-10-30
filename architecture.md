@@ -2,62 +2,54 @@
 
 ## Overview
 
-The repository is a small Python command-line tool that validates an OpenAPI document and renders a deterministic Markdown reference. Contributors run it to update `docs/api.md`; a GitHub Actions pull request check verifies that the generated file is current.
+The capstone has a dependency-free Java 17 HTTP server, a browser-based dashboard, and a deliberately simulated test runner. The browser stores test cases and report history in local storage. The Java server only serves the app and simulates asynchronous run status.
 
 ```mermaid
 flowchart LR
-    Spec[openapi.yaml or openapi.json] --> CLI[Python sync CLI]
-    CLI --> Parse[Parse YAML or JSON]
-    Parse --> Validate[Validate OpenAPI 3.0 or 3.1]
-    Validate --> Render[Render API reference Markdown]
-    Render --> Write[Atomic write to docs/api.md]
-    Render --> Check[Compare in check mode]
+    Browser[Browser dashboard] --> Local[Browser localStorage]
+    Browser -->|POST /api/runs| Server[Java HTTP server]
+    Server --> Runner[Demo execution service]
+    Browser -->|GET /api/runs/id| Runner
+    Server -->|Static HTML/CSS/JS| Browser
     PR[Pull request] --> Actions[GitHub Actions]
-    Actions --> Tests[Unit tests]
-    Actions --> Check
-    Actions --> Audit[Dependency audit]
+    Actions --> Tests[Maven tests]
 ```
 
-## Components and responsibilities
+## Components
 
 | Component | Responsibility |
 |---|---|
-| `scripts/sync_openapi_docs.py` | Discover or accept an input spec, parse and validate it, render Markdown, and either atomically update output or verify it in check mode. |
-| `openapi.yaml` | Minimal valid sample contract used to demonstrate and test synchronization. |
-| `docs/api.md` | Generated API reference; contributors commit this file alongside contract changes. |
-| `tests/` | Unit and integration coverage for generation, check mode, invalid inputs, and preservation of existing output. |
-| `.github/workflows/openapi-docs.yml` | Runs tests, dependency auditing, and documentation consistency checks for relevant pull requests. |
-| `requirements.txt` | Declares the YAML parser and OpenAPI validator used by the CLI. |
-| `.github/` Copilot customizations | Project instructions, a review agent, a synchronization prompt, and an on-demand synchronization skill guide repeatable agent-assisted work. |
-| `CHANGELOG.md` and `.github/PULL_REQUEST_TEMPLATE.md` | Record the initial release changes and provide the requested structured PR description and reviewer checklist. |
+| `DashboardServer` | Serves the UI assets and exposes health and demo-run endpoints using the JDK HTTP server. |
+| `ExecutionService` | Creates in-progress run records, then completes them as Passed or Failed after a short scheduled delay. |
+| `static/index.html` | Dashboard layout, login gate, test-case form, reports and confirmation dialogs. |
+| `static/app.js` | Local storage, create/read/update/delete, search/filter, runner polling, and report history. |
+| `static/styles.css` | Responsive dashboard styling and status indicators. |
+| `src/test/java` | JUnit tests for execution transitions and HTTP endpoint behavior. |
+| `.github/workflows/ci.yml` | Runs the Maven test suite on pull requests and pushes to `main`. |
 
 ## Data flow
 
-1. The CLI accepts an explicit `--spec` path or discovers exactly one root-level `openapi.yaml` / `openapi.json`.
-2. The input is parsed with safe YAML loading or the JSON parser.
-3. The CLI checks that the document is non-empty, declares OpenAPI 3.0.x or 3.1.x, and passes the OpenAPI validator.
-4. The renderer walks paths and supported HTTP operations in stable order and formats parameters, request bodies, response codes, and response schemas.
-5. Normal mode writes the fully rendered result atomically. Check mode compares the expected text with the existing output and reports stale or missing documentation without writing.
-6. On pull requests that touch the contract or related implementation files, GitHub Actions runs tests, the dependency audit, and check mode. CI is read-only and never commits changes.
+1. The dashboard starts with a demo login gate. No credential validation or session security is provided.
+2. Cases are loaded from local storage, or a few sample cases are shown on first use.
+3. Create/edit/delete operations update browser storage and rerender the table. Deletion requires explicit confirmation.
+4. On Run Test, the browser creates a local In Progress state and submits the case ID, name, and selected demo outcome to the Java server.
+5. The Java runner returns a run ID. The browser polls for completion, updates the case's last result, and saves a report locally.
+6. The reports page displays status, time, duration, and simulated failure details.
 
-## Technology choices
+## API
 
-- **Python 3.11+:** small standard-library CLI and `unittest` suite.
-- **PyYAML:** safe parsing of YAML input; JSON uses the Python standard library.
-- **openapi-spec-validator:** structural validation for supported OpenAPI documents.
-- **GitHub Actions:** pull request automation, with `contents: read` permission.
+- `GET /api/health` — returns server status.
+- `POST /api/runs` — form-encoded case ID, title, and requested demo outcome; creates a run and returns its ID.
+- `GET /api/runs/{id}` — returns In Progress or the final Passed/Failed status, duration, timestamp, and failure message.
 
-## Error handling and security
+## Security and operational boundaries
 
-- Validation and rendering complete before the output path is touched.
-- Writes use a temporary file in the destination directory and atomic replacement.
-- YAML uses `safe_load`; the tool does not evaluate arbitrary tags or retrieve external references.
-- Errors identify the input path and next action where possible, and return a non-zero exit code.
-- The workflow requires no repository secrets and grants only read access.
-- Copilot customizations guide interactive work; deterministic validation remains in the CLI and CI workflow.
+- The login is a UI demonstration only and must not be used to protect real data.
+- The app uses no real secrets and makes no external network requests.
+- Java validates the run outcome and limits the request body size. Browser-rendered user text is HTML-escaped.
+- Case data and reports are not sent to the server for storage.
+- The simulated result is not evidence that a real UI test passed. The optional outcome selector exists only to demonstrate both result states.
 
-## Operational boundary
+## Agentic SDLC customization
 
-The PR workflow detects stale documentation and fails; it does not push generated changes. Contributors run `python scripts/sync_openapi_docs.py` and commit the updated `docs/api.md`. This matches the selected PR-check behavior while keeping CI safe and non-mutating.
-
-No agent lifecycle hook is configured. A hook is unnecessary for this repository because synchronization is an explicit developer action and the GitHub Actions workflow provides deterministic validation at the pull request boundary.
+Workspace instructions give Copilot the project rules. A dashboard review agent is read-only and evaluates behavior against the user story. A prompt provides a focused task for reviewing/implementing a dashboard change; a skill gives a repeatable workflow for validating features and tests. No lifecycle hook is installed because hidden automatic execution is unnecessary; Maven and CI provide explicit deterministic verification.

@@ -1,50 +1,55 @@
-# Automated API Documentation Sync
+# Caseflow — UI Test Case Management Dashboard
 
-Generate and verify a Markdown API reference from a root-level OpenAPI 3.0.x or 3.1.x contract.
+A Java 17 capstone demo for managing UI test cases and viewing execution results.
+
+## What it does
+
+- Shows test cases by name, module, priority, status, and last result.
+- Searches cases and filters by module, priority, and status.
+- Creates and edits test cases with required-field validation and unique IDs.
+- Confirms before deletion and keeps existing run reports.
+- Simulates asynchronous test runs that finish Passed or Failed.
+- Stores cases and reports in browser local storage.
+- Shows reports with status, duration, execution time, and simulated failure details.
+
+## Important demo limitations
+
+- The sign-in screen is a demo gate, not real authentication. Any non-empty name works.
+- The runner is simulated. It does not launch a browser or run Selenium/Playwright tests.
+- Cases and reports live only in the current browser profile. Clearing browser data removes them.
+- Selecting Pass/Fail is only for demonstrating the two report outcomes.
 
 ## Requirements
 
-- Python 3.11 or newer
-- pip
+- Java 17
+- Maven 3.8+
 
-## Install
-
-```sh
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-```
-
-## Generate documentation
-
-Place `openapi.yaml` or `openapi.json` in the repository root, then run:
+## Run locally
 
 ```sh
-python scripts/sync_openapi_docs.py
+mvn test
+mvn exec:java
 ```
 
-The command validates the specification and creates or updates [`docs/api.md`](docs/api.md). If both supported filenames are present, choose one explicitly:
+Open [http://localhost:8080](http://localhost:8080), enter any display name, and start exploring. Override the port with `mvn exec:java -Dexec.args="8090"` or set `PORT`.
+
+## Test
 
 ```sh
-python scripts/sync_openapi_docs.py --spec openapi.json
+mvn test
 ```
 
-To check that the committed documentation is current without changing files:
+The tests cover execution state transitions, server endpoints, validation errors, missing runs, and static page delivery. GitHub Actions runs `mvn verify` for pushes to `main` and pull requests.
 
-```sh
-python scripts/sync_openapi_docs.py --check
-```
+## Project guide
 
-When the check reports stale documentation, regenerate the file and commit it with the OpenAPI change.
+- [requirements.md](requirements.md) — user story and acceptance criteria
+- [architecture.md](architecture.md) — components, data flow, API, and scope boundaries
+- [design-review.md](design-review.md) — reviewed decisions and limitations
+- [impl-plan.md](impl-plan.md) — dependency-ordered delivery plan
+- [CHANGELOG.md](CHANGELOG.md) — project changes
+- [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) — PR description and reviewer checklist
 
-## Tests
+## Copilot helpers
 
-```sh
-python -m unittest discover -s tests -v
-```
-
-The GitHub Actions workflow runs tests, a dependency audit, and the documentation check for relevant pull requests. It has read-only repository permissions and never commits generated files.
-
-## Copilot workflow helpers
-
-Workspace instructions, a focused API documentation review agent, a synchronization prompt, and an on-demand synchronization skill are under `.github/`. There is no agent lifecycle hook: generation and CI checks are explicit commands, and the GitHub Actions workflow is the appropriate deterministic enforcement point.
+The `.github` folder includes project instructions, a dashboard reviewer agent, an implementation/review prompt, and an on-demand dashboard skill.

@@ -1,37 +1,31 @@
 ## Summary
 
-This project adds a validated OpenAPI-to-Markdown synchronization tool and a read-only GitHub Actions check. It keeps `docs/api.md` aligned with OpenAPI 3.0.x/3.1.x contracts and catches stale output before merge.
+Describe the dashboard behavior added or changed and how it supports US-102.
 
 ## Changes Made
 
-- `requirements.md` — agreed user story, functional and non-functional requirements, and acceptance criteria.
-- `architecture.md`, `design-review.md`, `impl-plan.md` — approved component design, review decisions, and dependency-ordered delivery plan.
-- `scripts/sync_openapi_docs.py` — parsing, validation, deterministic Markdown rendering, safe errors, check mode, and atomic writes.
-- `requirements.txt` — YAML, OpenAPI validation, and local-reference dependencies.
-- `openapi.yaml`, `docs/api.md` — demonstration contract and its generated reference.
-- `tests/test_sync_openapi_docs.py` — generation, JSON/YAML, invalid input, stale output, missing input, reference, and error-output coverage.
-- `.github/workflows/openapi-docs.yml` — pull request tests, dependency audit, and documentation consistency check with read-only permissions.
-- `README.md`, `CHANGELOG.md`, `.gitignore` — setup and usage, release notes, and local Python artifact exclusions.
-- `.github/copilot-instructions.md`, `.github/agents/openapi-doc-reviewer.agent.md`, `.github/prompts/sync-openapi-docs.prompt.md`, `.github/skills/openapi-doc-sync/SKILL.md` — team-shared Copilot guidance and repeatable workflows.
-- `.github/PULL_REQUEST_TEMPLATE.md` — this summary, evidence, limitations, and reviewer checklist.
+- List the implementation and documentation files changed, with a short reason for each.
 
 ## Test Evidence
 
-- `python -m unittest discover -s tests -v` — 11 tests passed.
-- `python scripts/sync_openapi_docs.py --check` — generated documentation is up to date.
-- `python -m pip_audit -r requirements.txt` — no known vulnerabilities found.
+- `mvn test`:
+- UI/API checks:
+- CI result:
 
 ## Known Limitations
 
-- This delivery is a local repository; it has not been published to GitHub and no remote pull request has been opened.
-- CI detects stale documentation but does not commit generated files; contributors must regenerate and commit `docs/api.md`.
-- External `$ref` targets are rejected; use local references.
+- Demo sign-in is not real authentication.
+- Test execution is simulated; no browser automation suite is invoked.
+- Case data and reports are browser-local and do not sync across users/devices.
+- List any additional limitations or “Not Found” behavior.
 
 ## Reviewer Checklist
 
-- [ ] Confirm requirements and acceptance criteria match the intended synchronization behavior.
-- [ ] Confirm supported OpenAPI versions, parsing, and validation errors are correct and actionable.
-- [ ] Confirm generated output covers paths, methods, parameters, request bodies, schemas, and response codes.
-- [ ] Confirm malformed or missing input cannot modify existing documentation.
-- [ ] Confirm tests, documentation check, and dependency audit pass.
-- [ ] Confirm workflow permissions remain read-only and no secrets are exposed.
+- [ ] Dashboard case list shows name, module, priority, status, and last result.
+- [ ] Search and module/priority/status filters work.
+- [ ] Required fields are validated and duplicate IDs are rejected.
+- [ ] Edits update the table; deletion requires confirmation.
+- [ ] Running a case shows In Progress then Passed/Failed.
+- [ ] Reports show status, duration, timestamp, and failure details when needed.
+- [ ] User-entered content is escaped and error states are understandable.
+- [ ] `mvn test` passes and demo-only limitations are clearly labeled.

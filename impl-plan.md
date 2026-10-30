@@ -1,17 +1,15 @@
 # Implementation Plan
 
-Tasks are prioritized and ordered by dependency. Local implementation is complete; publishing and opening a hosted PR are blocked by the local-only repository choice.
-
 | Priority | Task | Dependencies | Status |
 |---:|---|---|---|
-| 1 | Define acceptance criteria, output path, and PR-check behavior in `requirements.md`. | None | Complete |
-| 2 | Document component design, data flow, errors, security boundaries, and review decisions. | 1 | Complete |
-| 3 | Add the Python CLI, dependency declarations, and a sample OpenAPI contract. | 2 | Complete |
-| 4 | Add deterministic generation, validation, check mode, and failure-safety tests. | 3 | Complete |
-| 5 | Add generated `docs/api.md`, usage/changelog documentation, PR template, and GitHub Actions PR workflow. | 3, 4 | Complete |
-| 6 | Run tests, generator checks, dependency audit, and review against AC-01–AC-05. | 4, 5 | Complete |
-| 7 | Publish the repository to GitHub and open a PR using the prepared description/template. | 6 | Blocked |
+| 1 | Capture US-102 scope, behavior, and demo boundaries in requirements. | None | Complete |
+| 2 | Approve the Java server, browser storage, runner API, and security limits. | 1 | Complete |
+| 3 | Implement Java HTTP server and simulated asynchronous execution service. | 2 | Complete |
+| 4 | Implement dashboard login gate, case CRUD, search/filter, and browser persistence. | 2 | Complete |
+| 5 | Implement execution polling, status indicators, and report history. | 3, 4 | Complete |
+| 6 | Add tests, CI workflow, Copilot customizations, documentation, and PR template. | 3, 4, 5 | Complete |
+| 7 | Run Maven tests, start server, and verify UI/API behavior against AC-01–AC-05. | 6 | Complete |
 
-## Blocked tasks
+## Blocked work
 
-Task 7 requires a GitHub remote and repository-creation/pull-request capability. The user selected a local-only repository, so the complete PR description and reviewer checklist are prepared in `.github/PULL_REQUEST_TEMPLATE.md` but no remote PR was created.
+Production authentication, database persistence, and real browser automation are outside the approved demo scope.

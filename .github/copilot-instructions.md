@@ -1,8 +1,8 @@
 # Project Guidelines
 
-- Read [requirements.md](../requirements.md) and [architecture.md](../architecture.md) before changing sync behavior.
-- Keep the OpenAPI generator deterministic; validate input fully before touching generated output.
-- Preserve `docs/api.md` as generated output. Regenerate it with `python scripts/sync_openapi_docs.py`.
-- Run `python -m unittest discover -s tests -v` and `python scripts/sync_openapi_docs.py --check` after relevant changes.
-- Keep GitHub Actions read-only; CI detects stale docs and must not commit or push.
-- Add regression tests for invalid input and output-preservation behavior when changing validation or writing.
+- Read [requirements.md](../requirements.md), [architecture.md](../architecture.md), and [design-review.md](../design-review.md) before changing dashboard behavior.
+- Keep the demo limitations clear: login is not authentication, local storage is browser-only, and test execution is simulated.
+- Escape user-controlled strings before inserting them into HTML. Validate runner inputs and keep the request size bounded.
+- Run `mvn test` after Java or dashboard changes.
+- Preserve test reports when deleting test cases; maintain unique test case IDs.
+- GitHub Actions must remain read-only and use Java 17.
