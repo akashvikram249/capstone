@@ -58,3 +58,46 @@ Show report status, duration, timestamp, associated case, and failure details wh
 - Production authentication, roles, access control, and multi-user data.
 - Running real browser automation or connecting to an external test framework.
 - Server/database persistence, audit retention, or cross-device synchronization.
+
+## US-103: Filter Test Reports by Status
+
+### User story
+
+As a QA engineer, I want to filter test reports by status so I can find failed runs quickly.
+
+**Source:** User-provided story in Copilot chat. No JIRA, Confluence, or document link was provided.
+
+### Context and confirmed decisions
+
+- The reports page displays completed reports stored in browser local storage.
+- Current report statuses are Passed and Failed.
+- The status filter provides All, Passed, and Failed options, with All selected by default.
+- The selected filter is transient and is not saved to browser storage; a full page reload returns it to All.
+
+### Functional requirements
+
+#### FR-6: Filter execution reports by status
+
+Provide a labeled status filter on the reports page. Selecting All shows every report; selecting Passed or Failed shows only reports with that status. Filtering updates the displayed report rows without a page reload, preserves their existing order, and does not modify or delete stored reports. When no reports match the selected status, show an explicit no-matching-reports message.
+
+### Non-functional requirements
+
+- Apply filtering in the browser to the report data already loaded by the dashboard; no server or persistence changes are required.
+- Keep the filter operable and understandable using the dashboard's existing form-control and empty-state patterns.
+- Announce the updated visible-result count and no-match state to assistive technology through a polite live region without moving focus.
+
+### Acceptance criteria
+
+- **AC-06 — Filter reports by status:** The reports page offers All, Passed, and Failed; All is selected by default and shows all reports.
+- **AC-07 — Show matching reports:** Selecting Passed or Failed immediately displays only reports with the selected status, preserving the existing report order and report-detail actions.
+- **AC-08 — Preserve report data:** Changing or resetting the filter does not change or remove reports in browser storage; after a full page reload the filter defaults to All.
+- **AC-09 — Empty filter result:** If no reports match a selected status, the reports page displays a clear no-matching-reports message.
+- **AC-10 — Announce filter results:** A polite live region announces the visible-result count after a filter change and announces when no reports match; focus remains on the filter.
+- **AC-11 — Handle invalid report data safely:** If the stored report value is valid JSON but not an array, the dashboard shows an actionable report-data error, does not crash, and does not overwrite or delete the stored value.
+
+### Out of scope
+
+- Filtering by date, case, module, or other report attributes.
+- Persisting the selected filter across page reloads.
+- Changing how reports are generated, stored, or retained.
+- Automatically repairing or deleting structurally invalid report data.

@@ -11,12 +11,14 @@ A Java 17 capstone demo for managing UI test cases and viewing execution results
 - Simulates asynchronous test runs that finish Passed or Failed.
 - Stores cases and reports in browser local storage.
 - Shows reports with status, duration, execution time, and simulated failure details.
+- Filters report history by All, Passed, or Failed in the current page; the filter is not saved.
 
 ## Important demo limitations
 
 - The sign-in screen is a demo gate, not real authentication. Any non-empty name works.
 - The runner is simulated. It does not launch a browser or run Selenium/Playwright tests.
 - Cases and reports live only in the current browser profile. Clearing browser data removes them.
+- Structurally invalid saved report data is reported without automatic repair or deletion.
 - Selecting Pass/Fail is only for demonstrating the two report outcomes.
 
 ## Requirements
@@ -47,9 +49,23 @@ The tests cover execution state transitions, server endpoints, validation errors
 - [architecture.md](architecture.md) — components, data flow, API, and scope boundaries
 - [design-review.md](design-review.md) — reviewed decisions and limitations
 - [impl-plan.md](impl-plan.md) — dependency-ordered delivery plan
+- [SDLC-PIPELINE.md](SDLC-PIPELINE.md) — guided eight-phase Copilot SDLC cycle and approval gates
 - [CHANGELOG.md](CHANGELOG.md) — project changes
 - [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) — PR description and reviewer checklist
 
 ## Copilot helpers
 
-The `.github` folder includes project instructions, a dashboard reviewer agent, an implementation/review prompt, and an on-demand dashboard skill.
+Select **SDLC Orchestrator** in Copilot Chat to guide work from a user story through PR preparation. The orchestrator delegates each phase to its own specialist agent, prompt, and skill:
+
+1. Requirements
+2. Architecture
+3. Design review
+4. Implementation planning
+5. Implementation
+6. Code review
+7. Verification
+8. PR preparation
+
+The orchestrator pauses at human approval gates. It does not commit, push, deploy, or open a PR without your explicit approval. See [SDLC-PIPELINE.md](SDLC-PIPELINE.md) for phase details and direct invocation instructions. The separate Dashboard Reviewer is a read-only reviewer for US-102-specific dashboard changes.
+
+Two workspace hooks are configured in [.github/hooks/hooks.json](.github/hooks/hooks.json): SessionStart prints concise SDLC/repository context; PostToolUse runs Maven tests when the pending Java/dashboard source snapshot changes. The test hook runs Maven and may take a little time; repeated tool calls with the same source snapshot are skipped.

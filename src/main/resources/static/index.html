@@ -113,6 +113,15 @@
           <div class="page-heading"><span class="eyebrow">EXECUTION HISTORY</span><h1>Test reports</h1><p>Every run, with the details that matter.</p></div>
           <section class="panel table-panel">
             <div class="panel-heading"><div><h2>Recent executions <span id="report-count" class="count-pill">0</span></h2><p>Reports are stored locally in this browser.</p></div></div>
+            <div class="filters report-filters">
+              <label for="report-status-filter">Filter by status</label>
+              <select id="report-status-filter">
+                <option value="All">All</option>
+                <option value="Passed">Passed</option>
+                <option value="Failed">Failed</option>
+              </select>
+            </div>
+            <p id="report-announcement" class="visually-hidden" aria-live="polite" aria-atomic="true"></p>
             <div id="reports-table"></div>
           </section>
         </section>

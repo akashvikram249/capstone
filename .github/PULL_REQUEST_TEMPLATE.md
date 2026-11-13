@@ -2,6 +2,10 @@
 
 Describe the dashboard behavior added or changed and how it supports US-102.
 
+## Author Profile
+
+[GitHub profile: @akashvikram249](https://github.com/akashvikram249)
+
 ## Changes Made
 
 - List the implementation and documentation files changed, with a short reason for each.

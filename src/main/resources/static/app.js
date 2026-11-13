@@ -6,7 +6,7 @@ const SESSION_KEY = "caseflow.demoUser";
 const seedCases = [
   {
     id: "TC-101",
-    name: "Sign in with valid credentials",
+    name: "Sign in with valid credentials and navigate to dashboard",
     module: "Authentication",
     priority: "High",
     status: "Ready",
@@ -50,9 +50,11 @@ const seedCases = [
   }
 ];
 
+const storedReports = readStorage(REPORTS_KEY, []);
 const state = {
   cases: readStorage(CASES_KEY, seedCases),
-  reports: readStorage(REPORTS_KEY, []),
+  reports: Array.isArray(storedReports) ? storedReports : [],
+  reportsDataInvalid: !Array.isArray(storedReports),
   page: "overview",
   editingId: null,
   toastTimer: null
@@ -107,9 +109,16 @@ function persistCases() {
   if (saveStorage(CASES_KEY, state.cases)) render();
 }
 
-function persistReports() {
-  state.reports = state.reports.slice(0, 250);
-  if (saveStorage(REPORTS_KEY, state.reports)) render();
+function persistReports(reports) {
+  if (state.reportsDataInvalid) {
+    showToast("The saved reports were not changed because their browser data is not a list. Check the report data and reload before saving reports.", true);
+    return false;
+  }
+  const reportsToSave = reports.slice(0, 250);
+  if (!saveStorage(REPORTS_KEY, reportsToSave)) return false;
+  state.reports = reportsToSave;
+  render();
+  return true;
 }
 
 function initializeLogin() {
@@ -240,22 +249,54 @@ function formatDuration(milliseconds) {
   return seconds < 1 ? `${Math.round(milliseconds)} ms` : `${seconds.toFixed(1)} sec`;
 }
 
-function renderReports() {
-  $("#report-count").textContent = state.reports.length;
+function renderReports(announce = false) {
+  const filter = $("#report-status-filter");
+  const announcement = $("#report-announcement");
+  if (state.reportsDataInvalid) {
+    filter.disabled = true;
+    $("#report-count").textContent = "0";
+    $("#reports-table").innerHTML = `<div class="empty-state report-data-error"><span class="empty-icon">!</span>
+      <strong>Saved report data is not a list</strong>
+      <p>The report data in this browser has not been changed. Check or restore the ${escapeHtml(REPORTS_KEY)} value, then reload this page.</p></div>`;
+    announcement.textContent = "";
+    return;
+  }
+
+  filter.disabled = false;
+  const visibleReports = filter.value === "All"
+    ? state.reports
+    : state.reports.filter(report => report.status === filter.value);
+  $("#report-count").textContent = visibleReports.length;
   if (!state.reports.length) {
     $("#reports-table").innerHTML = `<div class="empty-state"><span class="empty-icon">◷</span>
       <strong>No execution reports yet</strong><p>Run a test case and its report will appear here.</p>
       <button class="button button-primary" data-nav="cases">Browse test cases</button></div>`;
-    return;
+  } else if (!visibleReports.length) {
+    $("#reports-table").innerHTML = `<div class="empty-state"><span class="empty-icon">⌕</span>
+      <strong>No matching reports</strong><p>Choose another status to see more execution reports.</p></div>`;
+  } else {
+    $("#reports-table").innerHTML = `<div class="table-wrap"><table><thead><tr>
+      <th>Test case</th><th>Result</th><th>Duration</th><th>Executed</th><th>Details</th>
+      </tr></thead><tbody>${visibleReports.map(report => `<tr>
+        <td><div class="case-name-cell"><strong>${escapeHtml(report.title)}</strong><small class="case-id">${escapeHtml(report.caseId)}</small></div></td>
+        <td>${resultBadge(report.status)}</td><td>${escapeHtml(formatDuration(report.durationMs))}</td>
+        <td>${escapeHtml(formatDate(report.timestamp))}</td>
+        <td><button class="text-button" data-action="report" data-id="${escapeHtml(report.id)}">View report →</button></td>
+        </tr>`).join("")}</tbody></table></div>`;
   }
-  $("#reports-table").innerHTML = `<div class="table-wrap"><table><thead><tr>
-    <th>Test case</th><th>Result</th><th>Duration</th><th>Executed</th><th>Details</th>
-    </tr></thead><tbody>${state.reports.map(report => `<tr>
-      <td><div class="case-name-cell"><strong>${escapeHtml(report.title)}</strong><small class="case-id">${escapeHtml(report.caseId)}</small></div></td>
-      <td>${resultBadge(report.status)}</td><td>${escapeHtml(formatDuration(report.durationMs))}</td>
-      <td>${escapeHtml(formatDate(report.timestamp))}</td>
-      <td><button class="text-button" data-action="report" data-id="${escapeHtml(report.id)}">View report →</button></td>
-      </tr>`).join("")}</tbody></table></div>`;
+  if (announce) {
+    announcement.textContent = state.reports.length && !visibleReports.length
+      ? `No reports match ${filter.value}.`
+      : `${visibleReports.length} ${visibleReports.length === 1 ? "report" : "reports"} shown.`;
+  }
+}
+
+function recordReport(report) {
+  if (state.reportsDataInvalid) {
+    showToast("The run's report was not saved because saved report data is invalid. Check or restore the browser's report data, then reload.", true);
+    return false;
+  }
+  return persistReports([report, ...state.reports]);
 }
 
 function openCaseDialog(testCase = null) {
@@ -362,10 +403,9 @@ async function runCase(id) {
       timestamp: completed.timestamp || startedAt,
       failureDetails: completed.failureDetails || ""
     };
-    state.reports.unshift(report);
     saveStorage(CASES_KEY, state.cases);
-    persistReports();
-    showToast(`${testCase.id} finished: ${completed.status}.`);
+    const reportSaved = recordReport(report);
+    if (reportSaved) showToast(`${testCase.id} finished: ${completed.status}.`);
   } catch (error) {
     console.error("Demo test execution failed.", error);
     testCase.status = "Failed";
@@ -379,10 +419,9 @@ async function runCase(id) {
       timestamp: startedAt,
       failureDetails: "Could not reach the demo runner. Confirm the dashboard server is running and try again."
     };
-    state.reports.unshift(report);
     saveStorage(CASES_KEY, state.cases);
-    persistReports();
-    showToast(error.message || "The demo test runner could not complete this run.", true);
+    const reportSaved = recordReport(report);
+    if (reportSaved) showToast(error.message || "The demo test runner could not complete this run.", true);
   }
 }
 
@@ -452,6 +491,7 @@ $("#search-input").addEventListener("input", renderCases);
 $("#module-filter").addEventListener("change", renderCases);
 $("#priority-filter").addEventListener("change", renderCases);
 $("#status-filter").addEventListener("change", renderCases);
+$("#report-status-filter").addEventListener("change", () => renderReports(true));
 $("#logout-button").addEventListener("click", () => {
   sessionStorage.removeItem(SESSION_KEY);
   $("#app-shell").classList.add("hidden");
