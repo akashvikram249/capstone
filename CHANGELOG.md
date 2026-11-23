@@ -16,3 +16,9 @@
 - Store case and report data in local storage and use a demo-only login gate.
 - Add Maven tests, GitHub Actions CI, and Copilot workflow helpers.
 - Add an eight-phase Copilot SDLC pipeline with a coordinating orchestrator and phase-specific agents, prompts, and skills.
+
+## US-106 run statistics endpoint
+
+- Backend-only GET /api/stats returns compact JSON {"totalRuns":N,"inProgress":N,"passed":N,"failed":N}. On a fresh server all counts are 0; counts update as runs start/complete; totalRuns equals inProgress + passed + failed. Non-GET methods return 405 with Allow: GET.
+- JUnit tests cover the empty state, pass/fail counts, an in-progress run, and the 405 case.
+- README and architecture document the endpoint; no changes to POST /api/runs or the browser UI/local storage.
