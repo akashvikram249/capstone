@@ -1,5 +1,13 @@
 # Changelog
 
+## US-106 run statistics endpoint
+
+- Add `GET /api/stats`, which returns `{"totalRuns":N,"inProgress":N,"passed":N,"failed":N}` for the runs the server has started.
+- `totalRuns` equals `inProgress + passed + failed`; a fresh server returns all zeros, and counts reset when the server restarts.
+- Non-GET methods (including HEAD) return 405 with `Allow: GET`.
+- Backend-only: no change to the browser UI, local storage, or `POST /api/runs`.
+- Add JUnit tests for the empty state, in-progress, pass/fail counts, and the 405 case.
+
 ## US-102 dashboard capstone
 
 - Replace the OpenAPI documentation generator with the Caseflow test management dashboard.
