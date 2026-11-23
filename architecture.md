@@ -11,6 +11,7 @@ flowchart LR
     Server --> Runner[Demo execution service]
     Browser -->|GET /api/runs/id| Runner
     Server -->|Static HTML/CSS/JS| Browser
+    Client[Script or CI client] -->|GET /api/stats| Server
     PR[Pull request] --> Actions[GitHub Actions]
     Actions --> Tests[Maven tests]
 ```
@@ -162,9 +163,16 @@ The serializer is deterministic for a given ordered report projection. Verify it
 
 **Assumptions and trade-offs:** The Java 17 / Maven / plain HTML-CSS-JavaScript stack and current browser-local report ownership remain unchanged. Sharing the current projection favors parity and minimal surface area over a new export query/service. CRLF is a conventional CSV record separator; the requirement does not otherwise mandate a record delimiter. Exact-value fidelity is preserved at the cost of the noted spreadsheet formula interpretation risk. No implementation, new dependency, server endpoint, persistence change, or change to approved requirements is proposed.
 
+## US-106: Run statistics endpoint
+
+`GET /api/stats` is a backend-only endpoint for a script or CI client. The browser dashboard does not call it, and it adds no change to `static/*`, local storage, or `POST /api/runs`.
+
+`ExecutionService.stats()` makes a single pass over the in-memory runs and counts each run as in progress (not yet completed), passed, or failed. `totalRuns` is the sum of those three counts from that same pass, not `runs.size()`, so the response is always self-consistent. There is no locking or caching, and counts follow runs as they start and complete asynchronously. `DashboardServer` routes `/api/stats` next to `/api/health`, answers GET with `200` and `{"totalRuns":N,"inProgress":N,"passed":N,"failed":N}` through the existing JSON helper, and answers any other method (including HEAD) with `405`, `Allow: GET`, through the existing method-not-allowed helper. Counts are in memory only and reset when the server restarts.
+
 ## API
 
 - `GET /api/health` — returns server status.
+- `GET /api/stats` — returns `totalRuns`, `inProgress`, `passed`, and `failed` run counts (backend-only; not used by the browser).
 - `POST /api/runs` — form-encoded case ID, title, and requested demo outcome; creates a run and returns its ID.
 - `GET /api/runs/{id}` — returns In Progress or the final Passed/Failed status, duration, timestamp, and failure message.
 
