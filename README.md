@@ -21,6 +21,10 @@ A Java 17 capstone demo for managing UI test cases and viewing execution results
 - Structurally invalid saved report data is reported without automatic repair or deletion.
 - Selecting Pass/Fail is only for demonstrating the two report outcomes.
 
+## API
+
+- `GET /api/stats` — returns `200` JSON `{"totalRuns":N,"inProgress":N,"passed":N,"failed":N}`. It counts runs started since the server process began (in memory only), and `totalRuns` = `inProgress` + `passed` + `failed`. Any non-GET method returns `405` with `Allow: GET`.
+
 ## Requirements
 
 - Java 17
