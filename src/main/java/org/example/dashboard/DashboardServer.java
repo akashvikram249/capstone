@@ -68,6 +68,11 @@ public final class DashboardServer implements AutoCloseable {
                 return;
             }
 
+            if (path.equals("/api/stats")) {
+                handleStats(exchange);
+                return;
+            }
+
             if (path.equals("/api/runs")) {
                 handleStartRun(exchange);
                 return;
@@ -89,6 +94,14 @@ public final class DashboardServer implements AutoCloseable {
         } finally {
             exchange.close();
         }
+    }
+
+    private void handleStats(HttpExchange exchange) throws IOException {
+        if (!methodIs(exchange, "GET")) {
+            sendMethodNotAllowed(exchange, "GET");
+            return;
+        }
+        sendJson(exchange, 200, jsonStats(executionService.stats()));
     }
 
     private void handleStartRun(HttpExchange exchange) throws IOException {
@@ -178,6 +191,13 @@ public final class DashboardServer implements AutoCloseable {
                 + ",\"durationMs\":" + result.durationMs()
                 + ",\"timestamp\":" + quote(result.timestamp())
                 + ",\"failureDetails\":" + quote(result.failureDetails()) + "}";
+    }
+
+    private static String jsonStats(ExecutionService.Stats stats) {
+        return "{\"totalRuns\":" + stats.totalRuns()
+                + ",\"inProgress\":" + stats.inProgress()
+                + ",\"passed\":" + stats.passed()
+                + ",\"failed\":" + stats.failed() + "}";
     }
 
     private static String jsonError(String message) {
