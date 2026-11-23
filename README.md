@@ -35,13 +35,33 @@ mvn exec:java
 
 Open [http://localhost:8080](http://localhost:8080), enter any display name, and start exploring. Override the port with `mvn exec:java -Dexec.args="8090"` or set `PORT`.
 
+## API
+
+### GET /api/stats
+
+Returns how many test runs the server has started, so a script or CI client can see how many runs are in progress, passed, or failed without opening the dashboard.
+
+```sh
+curl http://localhost:8080/api/stats
+```
+
+```json
+{"totalRuns":0,"inProgress":0,"passed":0,"failed":0}
+```
+
+- Responds `200` with exactly the keys `totalRuns`, `inProgress`, `passed`, and `failed`, in that order. `totalRuns` always equals `inProgress + passed + failed`.
+- Response headers: `Content-Type: application/json; charset=utf-8`, `Cache-Control: no-store`, and `X-Content-Type-Options: nosniff`.
+- Any non-GET method (including HEAD) returns `405` with an `Allow: GET` header and the body `{"error":"Use the GET method for this endpoint."}`.
+- Counts are held in server memory and reset to 0 when the server restarts.
+- The endpoint is backend-only: the browser dashboard does not use it, and it does not change `POST /api/runs`, local storage, or the UI.
+
 ## Test
 
 ```sh
 mvn test
 ```
 
-The tests cover execution state transitions, server endpoints, validation errors, missing runs, and static page delivery. GitHub Actions runs `mvn verify` for pushes to `main` and pull requests.
+The tests cover execution state transitions, server endpoints, the run statistics endpoint, validation errors, missing runs, and static page delivery. GitHub Actions runs `mvn verify` for pushes to `main` and pull requests.
 
 ## Project guide
 
