@@ -68,6 +68,17 @@ public final class DashboardServer implements AutoCloseable {
                 return;
             }
 
+            if (path.equals("/api/stats")) {
+                if (!methodIs(exchange, "GET")) {
+                    sendMethodNotAllowed(exchange, "GET");
+                } else {
+                    ExecutionService.Stats stats = executionService.stats();
+                    long totalRuns = stats.inProgress() + stats.passed() + stats.failed();
+                    sendJson(exchange, 200, jsonStats(totalRuns, stats));
+                }
+                return;
+            }
+
             if (path.equals("/api/runs")) {
                 handleStartRun(exchange);
                 return;
@@ -178,6 +189,13 @@ public final class DashboardServer implements AutoCloseable {
                 + ",\"durationMs\":" + result.durationMs()
                 + ",\"timestamp\":" + quote(result.timestamp())
                 + ",\"failureDetails\":" + quote(result.failureDetails()) + "}";
+    }
+
+    private static String jsonStats(long totalRuns, ExecutionService.Stats stats) {
+        return "{\"totalRuns\":" + totalRuns
+                + ",\"inProgress\":" + stats.inProgress()
+                + ",\"passed\":" + stats.passed()
+                + ",\"failed\":" + stats.failed() + "}";
     }
 
     private static String jsonError(String message) {
