@@ -19,7 +19,7 @@ flowchart LR
 
 | Component | Responsibility |
 |---|---|
-| `DashboardServer` | Serves the UI assets and exposes health and demo-run endpoints using the JDK HTTP server. |
+| `DashboardServer` | Serves the UI assets and exposes health, run-statistics, and demo-run endpoints using the JDK HTTP server. |
 | `ExecutionService` | Creates in-progress run records, then completes them as Passed or Failed after a short scheduled delay. |
 | `static/index.html` | Dashboard layout, login gate, test-case form, reports and confirmation dialogs. |
 | `static/app.js` | Local storage, create/read/update/delete, search/filter, runner polling, and report history. |
