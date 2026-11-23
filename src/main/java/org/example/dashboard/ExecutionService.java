@@ -19,6 +19,8 @@ public final class ExecutionService implements AutoCloseable {
             String timestamp,
             String failureDetails) {}
 
+    public record Stats(long inProgress, long passed, long failed) {}
+
     private static final String FAILURE_DETAILS =
             "Simulated UI assertion failed. Review the test steps and expected result.";
 
@@ -59,6 +61,20 @@ public final class ExecutionService implements AutoCloseable {
     public RunResult find(String id) {
         Run run = runs.get(id);
         return run == null ? null : run.toResult();
+    }
+
+    public Stats stats() {
+        long inProgress = 0;
+        long passed = 0;
+        long failed = 0;
+        for (Run run : runs.values()) {
+            switch (run.toResult().status()) {
+                case "Passed" -> passed++;
+                case "Failed" -> failed++;
+                default -> inProgress++;
+            }
+        }
+        return new Stats(inProgress, passed, failed);
     }
 
     private static String requireText(String value, String label, int maxLength) {
